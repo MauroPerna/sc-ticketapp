@@ -13,6 +13,7 @@ contract Manager is Ownable {
     Ticket[] private TicketList;
 
     event FundsReceived(uint256 amount);
+    event commissionCharged(uint256 feeCharged, uint256 contractBalance);
 
     modifier isOwner(Ticket ticket) {
         require(
@@ -202,13 +203,11 @@ contract Manager is Ownable {
     function changeTicketPrice(Ticket ticket, uint256 _newPrice)
         public
         payable
-        isOwner(ticket)
     {
         uint256 managerFee = (_newPrice * commissionPercentage) / 100;
         require(msg.value >= managerFee, "The amount transfer is insufficient");
-        (bool success, ) = address(this).call{value: managerFee}("");
-        require(success == true, "Transaction failed!");
         Ticket(ticket).changePrice(_newPrice);
+        emit commissionCharged(msg.value, address(this).balance);
     }
 
     /*
