@@ -203,6 +203,7 @@ contract Manager is Ownable {
     function changeTicketPrice(Ticket ticket, uint256 _newPrice)
         public
         payable
+        isOwner(ticket)
     {
         uint256 managerFee = (_newPrice * commissionPercentage) / 100;
         require(msg.value >= managerFee, "The amount transfer is insufficient");
@@ -245,7 +246,7 @@ contract Manager is Ownable {
         Función para eliminar el ticket de la lista. 
     */
 
-    function deleteTicket(uint256 _ticketPositionInArray) public {
+    function deleteTicket(uint256 _ticketPositionInArray) public onlyOwner{
         for (uint256 i = _ticketPositionInArray; i < TicketList.length; i++) {
             TicketList[_ticketPositionInArray] = TicketList[
                 _ticketPositionInArray + 1
