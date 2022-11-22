@@ -12,12 +12,22 @@ contract Manager is Ownable {
     mapping(address => Ticket[]) ticketsPerUser;
     Ticket[] private TicketList;
 
+    event FundsReceived(uint256 amount);
+
     modifier isOwner(Ticket ticket) {
         require(
             TicketsToOwners[ticket] == msg.sender,
             "You are not the owner of the ticket"
         );
         _;
+    }
+
+    receive() external payable {
+        emit FundsReceived(msg.value);
+    }
+
+    fallback() external payable {
+        emit FundsReceived(msg.value);
     }
 
     constructor() {}
@@ -188,6 +198,7 @@ contract Manager is Ownable {
         Función para permitir que el dueño de un ticket pueda cambiar el precio del mismo,
         pero en ese caso el contrato Manager cobra un 5% de comisión y queda en su balance.
     */
+    
     function changeTicketPrice(Ticket ticket, uint256 _newPrice)
         public
         payable
