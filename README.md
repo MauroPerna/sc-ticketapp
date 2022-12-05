@@ -3,6 +3,13 @@
 ```
 npm install
 ```
+## You must create an .env file and set 2 parameters:
+
+```
+INFURA_API_KEY = 
+MNEMONIC = 
+```
+
 ## Then once stopped at the root of the directory run the tests by executing the bash script in the console
 
 ```
