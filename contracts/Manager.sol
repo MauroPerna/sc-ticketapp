@@ -13,7 +13,7 @@ contract Manager is Ownable {
     Ticket[] private TicketList;
 
     event FundsReceived(uint256 amount);
-    event commissionCharged(uint256 feeCharged, uint256 contractBalance);
+    event CommissionCharged(uint256 feeCharged, uint256 contractBalance);
 
     modifier isOwner(Ticket ticket) {
         require(
@@ -35,7 +35,7 @@ contract Manager is Ownable {
 
     // Funciones de uso privado del contrato Manager
 
-    function getTotalTickets() private view returns (uint256 totalTickets) {
+    function getTotalTickets() private view returns (uint256) {
         return TicketList.length;
     }
 
@@ -79,9 +79,8 @@ contract Manager is Ownable {
         EventType _eventType,
         uint256 _price,
         TicketStatus _status,
-        TransferStatus _transferStatus,
-        address _owner
-    ) public {
+        TransferStatus _transferStatus
+    ) public returns (address _ticket) {
         Ticket ticket = new Ticket(
             _eventName,
             _eventDate,
@@ -90,13 +89,14 @@ contract Manager is Ownable {
             _price,
             _status,
             _transferStatus,
-            _owner
+            msg.sender
         );
-        TicketsToOwners[ticket] = _owner;
+        TicketsToOwners[ticket] = msg.sender;
         TicketList.push(ticket);
         // en transfer ticket hay que modificar para hacer este cambio de
         // propiedad en el mapping ticketsPerUser.
-        ticketsPerUser[_owner].push(ticket);
+        ticketsPerUser[msg.sender].push(ticket);
+        return address(ticket);
     }
 
     /*
@@ -115,6 +115,7 @@ contract Manager is Ownable {
             string memory eventDescription,
             EventType eventType,
             TicketStatus status,
+            TransferStatus transferStatus,
             address owner
         )
     {
@@ -138,6 +139,7 @@ contract Manager is Ownable {
             string memory eventDescription,
             EventType eventType,
             TicketStatus status,
+            TransferStatus transferStatus,
             address owner
         )
     {
@@ -188,6 +190,7 @@ contract Manager is Ownable {
             "Only the new owner can perform this action."
         );
         address oldOwner = TicketsToOwners[ticket];
+        require(_newOwner != oldOwner, "You can't perform this action");
         (bool success, ) = oldOwner.call{value: msg.value}("");
         require(success == true, "Transaction failed!");
         TicketsToOwners[ticket] = _newOwner;
@@ -199,7 +202,7 @@ contract Manager is Ownable {
         Función para permitir que el dueño de un ticket pueda cambiar el precio del mismo,
         pero en ese caso el contrato Manager cobra un 5% de comisión y queda en su balance.
     */
-    
+
     function changeTicketPrice(Ticket ticket, uint256 _newPrice)
         public
         payable
@@ -208,7 +211,7 @@ contract Manager is Ownable {
         uint256 managerFee = (_newPrice * commissionPercentage) / 100;
         require(msg.value >= managerFee, "The amount transfer is insufficient");
         Ticket(ticket).changePrice(_newPrice);
-        emit commissionCharged(msg.value, address(this).balance);
+        emit CommissionCharged(msg.value, address(this).balance);
     }
 
     /*
@@ -246,14 +249,31 @@ contract Manager is Ownable {
         Función para eliminar el ticket de la lista. 
     */
 
-    function deleteTicket(uint256 _ticketPositionInArray) public onlyOwner{
+    function deleteTicket(uint256 _ticketPositionInArray) public onlyOwner {
         for (uint256 i = _ticketPositionInArray; i < TicketList.length; i++) {
             TicketList[_ticketPositionInArray] = TicketList[
                 _ticketPositionInArray + 1
             ];
         }
 
+        address owner = TicketsToOwners[TicketList[TicketList.length - 1]];
+
+        uint256 ticketPositionInUserArray = 0;
+        for (uint256 i = 0; i < ticketsPerUser[owner].length; i++) {
+            if (
+                ticketsPerUser[owner][i] ==
+                Ticket(TicketList[TicketList.length - 1])
+            ) {
+                ticketPositionInUserArray = i;
+            }
+        }
+
+        ticketsPerUser[owner][ticketPositionInUserArray] = ticketsPerUser[
+            owner
+        ][ticketsPerUser[owner].length - 1];
+
         delete TicketsToOwners[Ticket(TicketList[TicketList.length - 1])];
+        ticketsPerUser[owner].pop();
         TicketList.pop();
     }
 }

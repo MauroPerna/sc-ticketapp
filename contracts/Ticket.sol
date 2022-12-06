@@ -102,6 +102,7 @@ contract Ticket {
             string memory _eventDescription,
             EventType _eventType,
             TicketStatus _status,
+            TransferStatus _transferStatus,
             address _owner
         )
     {
@@ -114,6 +115,7 @@ contract Ticket {
             eventDescription,
             eventType,
             status,
+            transferStatus,
             owner
         );
     }
