@@ -3,14 +3,8 @@
 ```
 npm install
 ```
-## You must create an .env file and set 2 parameters:
 
-```
-INFURA_API_KEY = 
-MNEMONIC = 
-```
-
-## Then once stopped at the root of the directory run the tests by executing the bash script in the console
+## Then, once positioned at the root of the directory, run the tests by running the bash script in the console
 
 ```
 .\scripts\deploy_and_testing.sh
@@ -20,4 +14,11 @@ MNEMONIC =
 
 ```
 0xc8893C0ad4daef5750dA34Fb06d592d81D43CF3E
+```
+
+## If you want to deploy this contract you must create an .env file and set 2 parameters:
+
+```
+INFURA_API_KEY = 
+MNEMONIC = 
 ```
